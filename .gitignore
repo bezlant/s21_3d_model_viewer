@@ -1,3 +1,13 @@
+# Custom
+tags
+.cache
+compile_commands.json
+build/
+imgui.ini
+objs/
+Session.vim
+3d_model_viewer
+
 # Prerequisites
 *.d
 
