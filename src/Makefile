@@ -1,5 +1,7 @@
 EXE = 3d_model_viewer
 IMGUI_DIR = ./imgui
+IM3D_DIR = ./im3d
+IMGUI_FILEBROWSER_DIR = ./imgui-filebrowser
 
 SOURCES = main.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
@@ -7,7 +9,7 @@ SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
-CXXFLAGS = -std=c++11 -pedantic -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
+CXXFLAGS = -std=c++17 -pedantic -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I$(IMGUI_FILEBROWSER_DIR) -I$(IM3D_DIR)
 CXXFLAGS += -g -Wall -Wformat
 LIBS =
 

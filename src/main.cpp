@@ -1,10 +1,12 @@
 #define GL_SILENCE_DEPRECATION
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <imfilebrowser.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 
 /*
  The graphical user interface must contain:
@@ -62,6 +64,10 @@ int main(void) {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    ImGui::FileBrowser fileDialog;
+    fileDialog.SetTitle("Select a 3d model to view:");
+    fileDialog.SetTypeFilters({".obj"});
+
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 
@@ -76,6 +82,22 @@ int main(void) {
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
+
+        {
+            if (ImGui::Begin("The file window")) {
+                if (ImGui::Button("Open file dialog"))
+                    fileDialog.Open();
+            }
+            ImGui::End();
+
+            fileDialog.Display();
+
+            if (fileDialog.HasSelected()) {
+                std::cout << "Selected filename: " << fileDialog.GetSelected()
+                          << std::endl;
+                fileDialog.ClearSelected();
+            }
+        }
 
         // glClearColor(clear_color.x * clear_color.w,
         //              clear_color.y * clear_color.w,
