@@ -7,6 +7,7 @@ imgui.ini
 objs/
 Session.vim
 3d_model_viewer
+.DS_*
 
 # Prerequisites
 *.d

@@ -14,6 +14,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
