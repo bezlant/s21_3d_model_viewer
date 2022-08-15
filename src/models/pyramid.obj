@@ -1,0 +1,16 @@
+# pyramid
+# Vertices, x y z
+v 0.0 1.0 0.0
+v -1.0 0.0 -1.0
+v 1.0 0.0 -1.0
+v 1.0 0.0 1.0
+v -1.0 0.0 1.0
+# Faces
+# Four sides
+f 1 2 3
+f 1 3 4
+f 1 4 5
+f 1 5 2
+# Square underside, two triangles
+f 3 2 4
+f 2 5 4
