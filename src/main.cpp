@@ -29,6 +29,7 @@ static inline void framebuffer_size_callback(GLFWwindow *window, int width,
                                              int height);
 static inline void glfw_error_callback(int error, const char *description);
 std::string get_filename(std::string s);
+static void generate_random_colors(GLfloat colors[], size_t size);
 
 int main(void) {
     srand(time(0));
@@ -50,6 +51,11 @@ int main(void) {
 
     // Imgui Defaults
     ImVec4 bg_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    float zoom = 45.0f;
+    int draw_type = GL_TRIANGLES;
+    float rotateCamera = 0.0f;
+    glm::vec3 init_pos(4, 3, 3);
+    float y = 0.0f, z = 0.0f;
 
     // Load shaders
     GLuint programID =
@@ -57,21 +63,6 @@ int main(void) {
     glUseProgram(programID);
 
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-
-    // Projection & View
-    glm::mat4 Projection = glm::perspective(
-        glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f,
-        100.0f);
-
-    glm::mat4 View = glm::lookAt(
-        glm::vec3(8, 4, 3),  // Camera is at (4,3,3), in World Space
-        glm::vec3(0, 0, 0),  // and looks at the origin
-        glm::vec3(0, -1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-    );
-
-    glm::mat4 Model = glm::mat4(1.0f);
-
-    glm::mat4 MVP = Projection * View * Model;
 
     // Vertices for loading
     std::vector<glm::vec3> vertices;
@@ -85,11 +76,7 @@ int main(void) {
     glGenBuffers(1, &vertex_buffer);
 
     GLfloat *color_buffer_data = new GLfloat[vertices.size() * 3 * 3];
-    for (int v = 0; v < vertices.size() * 3; v++) {
-        color_buffer_data[3 * v + 0] = float(rand()) / float(RAND_MAX);
-        color_buffer_data[3 * v + 1] = float(rand()) / float(RAND_MAX);
-        color_buffer_data[3 * v + 2] = float(rand()) / float(RAND_MAX);
-    }
+    generate_random_colors(color_buffer_data, vertices.size());
 
     GLuint color_buffer;
     glGenBuffers(1, &color_buffer);
@@ -110,6 +97,26 @@ int main(void) {
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
                      &vertices[0], GL_STATIC_DRAW);
 
+        // Projection & View
+        glm::mat4 Projection = glm::perspective(
+            glm::radians(zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,
+            0.1f, 100.0f);
+
+        glm::vec3 rotate(cos(rotateCamera) * 10.0 - init_pos.x, 0,
+                         sin(rotateCamera) * 10.0 - init_pos.z);
+
+        glm::vec position = init_pos + rotate;
+
+        glm::mat4 View = glm::lookAt(
+            position,            // Camera is at (4,3,3), in World Space
+            glm::vec3(0, 0, 0),  // and looks at the origin
+            glm::vec3(0, 1,
+                      0)  // Head is up (set to 0,-1,0 to look upside-down)
+        );
+
+        glm::mat4 Model = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, y, z));
+        glm::mat4 MVP = Projection * View * Model;
+
         // Send our transformation to the currently bound shader,
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
@@ -122,8 +129,8 @@ int main(void) {
         glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-        // Drawing
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        // Drawing GL_LINE_STRIP GL_TRIANGLES
+        glDrawArrays(draw_type, 0, vertices.size());
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -136,8 +143,16 @@ int main(void) {
                 ImGui::SameLine();
                 ImGui::Text("%s", get_filename(path).c_str());
                 ImGui::Text("Vertices: %zu", vertices_count);
+                ImGui::SameLine();
                 ImGui::Text("Edges: %zu", faces_count);
                 ImGui::ColorEdit4("Color", (float *)&bg_color);
+                ImGui::RadioButton("GL_TRIANGLES", &draw_type, GL_TRIANGLES);
+                ImGui::SameLine();
+                ImGui::RadioButton("GL_LINE_STRIP", &draw_type, GL_LINE_STRIP);
+                ImGui::SliderFloat("Zoom", &zoom, 69.0f, 4.20f);
+                ImGui::SliderFloat("Rotate", &rotateCamera, -5.0f, 5.0f);
+                ImGui::SliderFloat("Up/Down", &y, -5.0f, 5.0f);
+                ImGui::SliderFloat("Left/Right", &z, -5.0f, 5.0f);
             }
             ImGui::End();
 
@@ -154,14 +169,7 @@ int main(void) {
 
                 delete[] color_buffer_data;
                 color_buffer_data = new GLfloat[vertices.size() * 3 * 3];
-                for (int v = 0; v < vertices.size() * 3; v++) {
-                    color_buffer_data[3 * v + 0] =
-                        float(rand()) / float(RAND_MAX);
-                    color_buffer_data[3 * v + 1] =
-                        float(rand()) / float(RAND_MAX);
-                    color_buffer_data[3 * v + 2] =
-                        float(rand()) / float(RAND_MAX);
-                }
+                generate_random_colors(color_buffer_data, vertices.size());
 
                 fileDialog.ClearSelected();
             }
@@ -186,6 +194,14 @@ int main(void) {
 
     delete[] color_buffer_data;
     exit(EXIT_SUCCESS);
+}
+
+void generate_random_colors(GLfloat colors[], size_t size) {
+    for (size_t v = 0; v < size * 3; v++) {
+        colors[3 * v + 0] = float(rand()) / float(RAND_MAX);
+        colors[3 * v + 1] = float(rand()) / float(RAND_MAX);
+        colors[3 * v + 2] = float(rand()) / float(RAND_MAX);
+    }
 }
 
 static inline void glfw_error_callback(int error, const char *description) {
