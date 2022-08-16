@@ -1,21 +1,5 @@
 #define GL_SILENCE_DEPRECATION
-#include "common.h"
-#include "shader/shader.hpp"
-#include "loader/loader.hpp"
-
-/*
- The graphical user interface must contain:
- A button to select the model file and a field to output its name.
- A visualisation area for the wireframe model.
- Button/buttons and input fields for translating the model.
- Button/buttons and input fields for rotating the model.
- Button/buttons and input fields for scaling the model.
- Information about the uploaded model - file name, number of vertices and edges.
- https://learnopengl.com/
- https://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
-*/
-
-const char PROGRAM_TITLE[] = "3d Model Viewer";
+#include "main.hpp"
 
 static inline void init_imgui(GLFWwindow *window);
 static inline void init_glfw();
@@ -28,8 +12,7 @@ static inline ImGui::FileBrowser init_filebrowser();
 static inline void framebuffer_size_callback(GLFWwindow *window, int width,
                                              int height);
 static inline void glfw_error_callback(int error, const char *description);
-std::string get_filename(std::string s);
-static void generate_random_colors(GLfloat colors[], size_t size);
+static inline void generate_random_colors(GLfloat colors[], size_t size);
 
 int main(void) {
     srand(time(0));
@@ -98,24 +81,7 @@ int main(void) {
                      &vertices[0], GL_STATIC_DRAW);
 
         // Projection & View
-        glm::mat4 Projection = glm::perspective(
-            glm::radians(zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,
-            0.1f, 100.0f);
-
-        glm::vec3 rotate(cos(rotateCamera) * 10.0 - init_pos.x, 0,
-                         sin(rotateCamera) * 10.0 - init_pos.z);
-
-        glm::vec position = init_pos + rotate;
-
-        glm::mat4 View = glm::lookAt(
-            position,            // Camera is at (4,3,3), in World Space
-            glm::vec3(0, 0, 0),  // and looks at the origin
-            glm::vec3(0, 1,
-                      0)  // Head is up (set to 0,-1,0 to look upside-down)
-        );
-
-        glm::mat4 Model = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, y, z));
-        glm::mat4 MVP = Projection * View * Model;
+        glm::mat4 MVP = compute_mvp(zoom, rotateCamera, init_pos, y, z);
 
         // Send our transformation to the currently bound shader,
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -283,4 +249,26 @@ static inline void init_glew() {
     glewExperimental = true;
     if (glewInit() != GLEW_OK)
         exit(EXIT_FAILURE);
+}
+
+glm::mat4 compute_mvp(float &zoom, float &rotateCamera, glm::vec3 &init_pos,
+                      float &y, float &z) {
+    glm::mat4 Projection = glm::perspective(
+        glm::radians(zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f,
+        100.0f);
+
+    glm::vec3 rotate(cos(rotateCamera) * 10.0 - init_pos.x, 0,
+                     sin(rotateCamera) * 10.0 - init_pos.z);
+
+    glm::vec position = init_pos + rotate;
+
+    glm::mat4 View =
+        glm::lookAt(position,            // Camera is at in World Space
+                    glm::vec3(0, 0, 0),  // Camera looking at (origin)
+                    glm::vec3(0, 1, 0)   // Head (0,-1,0 to look upside-down)
+        );
+
+    glm::mat4 Model = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, y, z));
+    glm::mat4 MVP = Projection * View * Model;
+    return MVP;
 }
