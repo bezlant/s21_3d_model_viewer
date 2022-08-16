@@ -12,7 +12,6 @@ static inline ImGui::FileBrowser init_filebrowser();
 static inline void framebuffer_size_callback(GLFWwindow *window, int width,
                                              int height);
 static inline void glfw_error_callback(int error, const char *description);
-static inline void generate_random_colors(GLfloat colors[], size_t size);
 
 int main(void) {
     srand(time(0));
@@ -24,7 +23,7 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // Init VAO (woodoo)
+    // Init VAO (VAO is an array of data buffers used by OpenGL)
     GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
@@ -54,17 +53,19 @@ int main(void) {
     size_t vertices_count = 0;
     load_obj(path.c_str(), vertices, faces_count, vertices_count);
 
-    // Some woodoo magic to load the vertices
+    // Vertex buffer to load data into it in the main loop
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
 
     GLfloat *color_buffer_data = new GLfloat[vertices.size() * 3 * 3];
     generate_random_colors(color_buffer_data, vertices.size());
 
+    // Color buffer to load colors
     GLuint color_buffer;
     glGenBuffers(1, &color_buffer);
 
     while (!glfwWindowShouldClose(window)) {
+        // Background color
         glClearColor(bg_color.x * bg_color.w, bg_color.y * bg_color.w,
                      bg_color.z * bg_color.w, bg_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -72,10 +73,12 @@ int main(void) {
         process_input(window);
         imgui_preprocess();
 
+        // Load colors
         glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * 3 * 3,
                      color_buffer_data, GL_STATIC_DRAW);
 
+        // Load vertices
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
                      &vertices[0], GL_STATIC_DRAW);
@@ -86,7 +89,7 @@ int main(void) {
         // Send our transformation to the currently bound shader,
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-        // Some woodoo magic
+        //  Enable to use attributes in a vertex shader
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
@@ -98,9 +101,11 @@ int main(void) {
         // Drawing GL_LINE_STRIP GL_TRIANGLES
         glDrawArrays(draw_type, 0, vertices.size());
 
+        // Disable to avoid OpenGL reading from arrays bound to an invalid ptr
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
 
+        // Main GUI window
         {
             if (ImGui::Begin("Main Menu")) {
                 if (ImGui::Button("Open file"))
@@ -115,9 +120,21 @@ int main(void) {
                 ImGui::RadioButton("GL_TRIANGLES", &draw_type, GL_TRIANGLES);
                 ImGui::SameLine();
                 ImGui::RadioButton("GL_LINE_STRIP", &draw_type, GL_LINE_STRIP);
+                if (ImGui::Button("Reset"))
+                    zoom = 45.0f;
+                ImGui::SameLine();
                 ImGui::SliderFloat("Zoom", &zoom, 69.0f, 4.20f);
+                if (ImGui::Button("Reset##Camera"))
+                    rotateCamera = 0.0f;
+                ImGui::SameLine();
                 ImGui::SliderFloat("Rotate", &rotateCamera, -5.0f, 5.0f);
+                if (ImGui::Button("Reset##UpDown"))
+                    y = 0.0f;
+                ImGui::SameLine();
                 ImGui::SliderFloat("Up/Down", &y, -5.0f, 5.0f);
+                if (ImGui::Button("Reset##LeftRight"))
+                    z = 0.0f;
+                ImGui::SameLine();
                 ImGui::SliderFloat("Left/Right", &z, -5.0f, 5.0f);
             }
             ImGui::End();
@@ -162,28 +179,41 @@ int main(void) {
     exit(EXIT_SUCCESS);
 }
 
-void generate_random_colors(GLfloat colors[], size_t size) {
-    for (size_t v = 0; v < size * 3; v++) {
-        colors[3 * v + 0] = float(rand()) / float(RAND_MAX);
-        colors[3 * v + 1] = float(rand()) / float(RAND_MAX);
-        colors[3 * v + 2] = float(rand()) / float(RAND_MAX);
-    }
-}
-
+/**
+ * @brief Setting up callback for errors
+ *
+ * @param error Error ID
+ * @param description Current error text
+ */
 static inline void glfw_error_callback(int error, const char *description) {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+/**
+ * @brief Setting up resize callback
+ *
+ * @param window Ptr to the current window
+ * @param width Window width
+ * @param height Window height
+ */
 static inline void framebuffer_size_callback(GLFWwindow *window, int width,
                                              int height) {
     glViewport(0, 0, width, height);
 }
 
+/**
+ * @brief Wait for esc to close window
+ *
+ * @param window Ptr to current window
+ */
 static inline void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
+/**
+ * @brief All the woodoo magic to initalize glfw
+ */
 static inline void init_glfw() {
     glfwSetErrorCallback(glfw_error_callback);
 
@@ -199,6 +229,11 @@ static inline void init_glfw() {
 #endif
 }
 
+/**
+ * @brief Imgui initialization
+ *
+ * @param window Ptr to the current window
+ */
 static inline void init_imgui(GLFWwindow *window) {
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -209,6 +244,11 @@ static inline void init_imgui(GLFWwindow *window) {
     ImGui_ImplOpenGL3_Init();
 }
 
+/**
+ * @brief Filebrowser initialization
+ *
+ * @return Returns the FileBrowser instance
+ */
 static inline ImGui::FileBrowser init_filebrowser() {
     ImGui::FileBrowser fileDialog;
     fileDialog.SetTitle("Select a 3d model to view:");
@@ -216,6 +256,11 @@ static inline ImGui::FileBrowser init_filebrowser() {
     return fileDialog;
 }
 
+/**
+ * @brief Creates a window using glfw
+ *
+ * @return Returns the ptr to the window created
+ */
 static inline GLFWwindow *create_window() {
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT,
                                           PROGRAM_TITLE, NULL, NULL);
@@ -230,45 +275,28 @@ static inline GLFWwindow *create_window() {
     return window;
 }
 
+/**
+ * @brief Imgui preprocessing
+ */
 static inline void imgui_preprocess() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 }
 
+/**
+ * @brief Imgui postprocessing
+ */
 static inline void imgui_postprocess() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-std::string get_filename(std::string s) {
-    return s.substr(s.find_last_of("/") + 1);
-}
-
+/**
+ * @brief Glew initialization & Error checking
+ */
 static inline void init_glew() {
     glewExperimental = true;
     if (glewInit() != GLEW_OK)
         exit(EXIT_FAILURE);
-}
-
-glm::mat4 compute_mvp(float &zoom, float &rotateCamera, glm::vec3 &init_pos,
-                      float &y, float &z) {
-    glm::mat4 Projection = glm::perspective(
-        glm::radians(zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f,
-        100.0f);
-
-    glm::vec3 rotate(cos(rotateCamera) * 10.0 - init_pos.x, 0,
-                     sin(rotateCamera) * 10.0 - init_pos.z);
-
-    glm::vec position = init_pos + rotate;
-
-    glm::mat4 View =
-        glm::lookAt(position,            // Camera is at in World Space
-                    glm::vec3(0, 0, 0),  // Camera looking at (origin)
-                    glm::vec3(0, 1, 0)   // Head (0,-1,0 to look upside-down)
-        );
-
-    glm::mat4 Model = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, y, z));
-    glm::mat4 MVP = Projection * View * Model;
-    return MVP;
 }

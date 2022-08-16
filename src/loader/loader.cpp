@@ -1,10 +1,8 @@
 #include "loader.hpp"
 
-bool load_obj(const char *filename, std::vector<glm::vec3> &vertices,
+void load_obj(const char *filename, std::vector<glm::vec3> &vertices,
               size_t &faces_count, size_t &vertices_count) {
     FILE *file = fopen(filename, "r");
-    if (!file)
-        return 1;
 
     std::vector<size_t> vertex_idx;
     std::vector<glm::vec3> tmp_vertices;
@@ -37,5 +35,4 @@ bool load_obj(const char *filename, std::vector<glm::vec3> &vertices,
 
     free(line);
     fclose(file);
-    return 0;
 }
