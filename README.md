@@ -14,12 +14,12 @@ Implementation of the **model viewer** in C following the principles of structur
 
 ### Goals
 
-- [ ] Obj parser
-- [ ] Render a model (Vertices & Surfaces support)
-- [ ] Translate the model by a given distance in relation to the X, Y, Z axes.
-- [ ] Rotate the model by a given angle relative to its X, Y, Z axes.
-- [ ] Scale the model by a given value.
-- [ ] Gui with Imgui/GLFW
+- [x] Obj parser
+- [x] Render a model (Vertices & Faces support)
+- [x] Translate the model by a given distance in relation to the X, Y, Z axes.
+- [x] Rotate the model by a given angle relative to its X, Y, Z axes.
+- [x] Scale the model by a given value.
+- [x] Gui with Imgui/GLFW
 - [ ] Code is well documented
 - [ ] Make all, install, uninstall, clean, dvi, dist, tests, gcov targets implemented
 - [ ] Unit Tests 
@@ -27,7 +27,7 @@ Implementation of the **model viewer** in C following the principles of structur
 
 ### Build and Dependencies
 
-<u>You'll need to install g++, make, pkg-config, glfw and doxygen(if you need the documentation).</u><br>
+<u>You'll need to install clang++, make, pkg-config, glfw and doxygen(if you need the documentation).</u><br>
 
 ```
 $ git clone https://github.com/bezlant/s21_3d_model_viewer --recursive
