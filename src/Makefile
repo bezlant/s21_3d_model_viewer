@@ -1,13 +1,15 @@
-CXX=clang++
 EXE = 3d_model_viewer
+BUILD_DIR = ../build
 IMGUI_DIR = ./imgui
 IMGUI_FILEBROWSER_DIR = ./imgui-filebrowser
+DIRS = . ./utils/ ./shader/ ./loader/ ./includes/
 
 SOURCES = main.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 SOURCES += ./shader/shader.cpp
-SOURCES += ./laoder/loader.cpp
+SOURCES += ./loader/loader.cpp
+SOURCES += ./utils/utils.cpp
 
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
@@ -43,6 +45,9 @@ endif
 %.o:loader/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+%.o:utils/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 %.o:$(IMGUI_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
@@ -52,7 +57,29 @@ endif
 all: $(EXE)
 
 $(EXE): $(OBJS)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+	mkdir -p $(BUILD_DIR)
+	$(CXX) -o $(BUILD_DIR)/$@ $^ $(CXXFLAGS) $(LIBS)
+
+.PHONY: install
+install: all
+	install -m 557 $(BUILD_DIR)/$(EXE) ~/Desktop
+
+uninstall:
+	rm -rf ~/Desktop/$(EXE)
+
+dvi: $(DIRS)
+	mkdir -p ../docs
+	doxygen Doxyfile
+
+dist: $(DIRS) Makefile main.cpp
+	mkdir -p ../dist
+	tar cvzf ../dist/3d_model_viewer_1.0.tgz *
+
+tests:
+	$(MAKE) -f test.mk 
+
+gcov_report:
+	$(MAKE) -f test.mk gcov_report
 
 clean:
 	rm -f $(OBJS)

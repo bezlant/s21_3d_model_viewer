@@ -20,8 +20,8 @@ Implementation of the **model viewer** in C following the principles of structur
 - [x] Rotate the model by a given angle relative to its X, Y, Z axes.
 - [x] Scale the model by a given value.
 - [x] Gui with Imgui/GLFW
-- [ ] Code is well documented
-- [ ] Make all, install, uninstall, clean, dvi, dist, tests, gcov targets implemented
+- [x] Code is well documented
+- [x] Make all, install, uninstall, clean, dvi, dist, tests, gcov targets implemented
 - [ ] Unit Tests 
 - [ ] Add previews & tests to README
 
