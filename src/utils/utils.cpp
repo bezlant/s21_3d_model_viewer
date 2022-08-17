@@ -13,7 +13,7 @@ glm::mat4 compute_mvp(float &zoom, float &rotateCamera, glm::vec3 &init_pos,
     glm::vec3 rotate(cos(rotateCamera) * 10.0 - init_pos.x, 0,
                      sin(rotateCamera) * 10.0 - init_pos.z);
 
-    glm::vec position = init_pos + rotate;
+    glm::vec3 position = init_pos + rotate;
 
     glm::mat4 View =
         glm::lookAt(position,            // Camera is at in World Space

@@ -64,17 +64,21 @@ $(EXE): $(OBJS)
 install: all
 	install -m 557 $(BUILD_DIR)/$(EXE) ~/Desktop
 
+.PHONY: uninstall
 uninstall:
 	rm -rf ~/Desktop/$(EXE)
 
+.PHONY: dvi
 dvi: $(DIRS)
 	mkdir -p ../docs
 	doxygen Doxyfile
 
+.PHONY: dist
 dist: $(DIRS) Makefile main.cpp
 	mkdir -p ../dist
 	tar cvzf ../dist/3d_model_viewer_1.0.tgz *
 
+.PHONY: tests
 tests:
 	$(MAKE) -f test.mk 
 
@@ -82,7 +86,10 @@ gcov_report:
 	$(MAKE) -f test.mk gcov_report
 
 clean:
-	rm -f $(OBJS)
+	rm -f  $(OBJS) imgui.ini
+	$(MAKE) -f test.mk clean
 
 fclean: clean
-	rm -f $(EXE) 
+	rm -rf $(BUILD_DIR)
+	rm -rf ../dist
+	rm -rf ../docs
