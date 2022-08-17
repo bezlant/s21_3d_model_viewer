@@ -1,6 +1,8 @@
-GCOV_FLAGS  	:= 		-fprofile-arcs -ftest-coverage 
+CXX 			:= 		clang++
+
+GCOV_FLAGS  	:= 		--coverage -fprofile-instr-generate -fcoverage-mapping
 ASAN			:=		-g -fsanitize=address
-CFLAGS			:=		-std=c++11 -Wall -Werror -Wextra $(GCOV_FLAGS) $(ASAN)
+CFLAGS			:=		-std=c++11 -Wall -Werror -Wextra  #$(ASAN)
 CFLAGS 			+= 		$(shell pkg-config --cflags gtest glm glew glfw3)
 LDFLAGS 		:= 		$(shell pkg-config --libs gtest glm glew glfw3) 
 
@@ -25,11 +27,11 @@ vpath %.o 	$(OBJS_DIR)
 all				: $(TARGET) 
 
 $(TARGET)		: $(TARGET_LIB) $(TEST_OBJS)
-					$(CXX) $(CFLAGS) -o $@  $(addprefix $(OBJS_DIR)/, $(TEST_OBJS)) $(TARGET_LIB) $(LDFLAGS) 
+					$(CXX) --coverage -fprofile-instr-generate  -o $@  $(addprefix $(OBJS_DIR)/, $(TEST_OBJS)) $(TARGET_LIB) $(LDFLAGS) 
 					./test
 				
 %.o 			: %.cpp $(INC) $(OBJS_DIR)
-					$(CXX) $(CFLAGS) -o $(addprefix $(OBJS_DIR)/, $@) -c $<
+					$(CXX) $(GCOV_FLAGS) $(CFLAGS) -o $(addprefix $(OBJS_DIR)/, $@) -c $<
 $(OBJS_DIR) 	:
 				mkdir -p $(OBJS_DIR)
 
@@ -38,17 +40,11 @@ $(TARGET_LIB)	: $(OBJS)
 					ranlib $(TARGET_LIB)
 	
 
-gcov: $(TARGET)
-	gcov $(TEST_SRC) $(SRC)
+gcov_report: $(TARGET)
+	llvm-profdata merge -sparse default.profraw -o default.profdata
+	llvm-cov show ./test -instr-profile=default.profdata utils/utils.cpp loader/loader.cpp  -use-color --format=html > coverage.html
+	open coverage.html
 
-coverage.info: gcov
-	lcov --capture --directory ./objs --output-file coverage.info
-
-gcov_report: coverage.info
-	genhtml coverage.info --output-directory coverage
-
-open:
-	open coverage/index.html
 
 debug			:
 					$(info TARGET = $(TARGET))
@@ -67,6 +63,7 @@ clean			:
 					rm -rf $(TARGET_LIB)
 					rm -rf $(TARGET)
 					rm -rf coverage*
+					rm -rf default.*
 
 re: clean $(TARGET)
 
