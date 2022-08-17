@@ -1,7 +1,5 @@
 # 3d Model Viewer
 
-![Viewer Preview](assets/preview.gif)
-
 ### Table of Contents
 * [Introduction](#introduction)
 * [Goals](#goals)
@@ -22,12 +20,12 @@ Implementation of the **model viewer** in C following the principles of structur
 - [x] Gui with Imgui/GLFW
 - [x] Code is well documented
 - [x] Make all, install, uninstall, clean, dvi, dist, tests, gcov targets implemented
-- [ ] Unit Tests 
-- [ ] Add previews & tests to README
+- [x] Unit Tests 
+- [x] Add previews 
 
 ### Build and Dependencies
 
-<u>You'll need to install clang++, make, pkg-config, glfw and doxygen(if you need the documentation).</u><br>
+<u>You'll need to install clang++, make, googletest, pkg-config, glfw and doxygen(if you need the documentation).</u><br>
 
 ```
 $ git clone https://github.com/bezlant/s21_3d_model_viewer --recursive
@@ -37,6 +35,4 @@ $ make -f test.mk (for tests)
 ```
 
 ### Tests
-* Unit tests are implemented using [Check](https://libcheck.github.io/check/) & coverage report with [LCOV](https://github.com/linux-test-project/lcov)
-
-![Tests & Coverage](assets/tests.gif)
+* Unit tests are implemented using [googletest](https://github.com/google/googletest) & coverage report with [LCOV](https://github.com/linux-test-project/lcov)
