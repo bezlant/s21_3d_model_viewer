@@ -27,7 +27,7 @@ Implementation of the **model viewer** in C++ following the principles of struct
 
 ### Build and Dependencies
 
-<u>You'll need to install clang++, make, googletest, pkg-config, glfw and doxygen(if you need the documentation).</u><br>
+<u>You'll need to install clang++, make, googletest, pkg-config, glfw3 glew glm and doxygen(if you need the documentation).</u><br>
 
 ```
 $ git clone https://github.com/bezlant/s21_3d_model_viewer --recursive
